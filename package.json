@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@stripe/react-stripe-js": "github:stripe/react-stripe-js",
+    "@stripe/stripe-js": "^2.1.0",
+    "firebase": "^10.2.0",
+    "react-currency-format": "^1.1.0"
+  }
+}
