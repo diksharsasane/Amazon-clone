@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import "./Payment.css"
 import { useStateValue } from './StateProvider';
 import CheckoutProduct from './CheckoutProduct';
@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import {CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import CurrencyFormat from 'react-currency-format';
 import { getbasketTotal } from './reducer';
+import axios from 'axios';
+
 
 
 
@@ -13,14 +15,36 @@ function Payment() {
 
   const [{basket,user},dispatch]=useStateValue();
 
-  const [error,setError]= useState(null);
-  const [disabled,setDisabled]=useState(true);
-
   const stripe=useStripe();     //two imp hooks
   const element=useElements();
 
-  const handleSubmit=e=>{
+  const [succeeded,setSucceeded] = useState(false);
+  const [processing,setProcessing] = useState("");
+  const [error,setError]= useState(null);
+  const [disabled,setDisabled]=useState(true);
+  const [clientSecret, setClientSecret]=useState(true);
+
+  useEffect(()=>{
+    //it run when payment component load   as well as any componet of basket has change
+
+      //generate the special stripe secreate which allow us to charge a customer
+
+      const getClientSecret =async()=>{
+            const response= await axios ({
+                method:'post',
+                url:`payments/create>total=${getBasketTotal(basket)}`
+            })  //axios is a way of making request we can make post reqest get request any thing that
+
+      }
+      getClientSecret();
+  },[basket])
+
+  const handleSubmit=async(event)=>{
     //do all fancy stuff
+    event.preventDefault();
+    setProcessing(true)     //when user click on buy button more than one time it will block other click
+    
+    //const payload =await stripe
   }
   const handleChange=e=>{
     //Listen for changes in CardElement
@@ -91,7 +115,13 @@ function Payment() {
               thousandSeparator={true}
               prefix={"₹"}
               />
+
+              <button disabled={processing || disabled || succeeded}>    {/**when there is nothing in card list it desable  */}
+                <span>{processing ? <p>Processing</p> : "Buy Now"}</span>
+              </button>
             </div>
+            {/**Errors */}
+            {error && <div>{error}</div>}
           </form>
 
         </div>
