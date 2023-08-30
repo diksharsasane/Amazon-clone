@@ -2,18 +2,20 @@ import React, { useEffect, useState } from 'react'
 import "./Payment.css"
 import { useStateValue } from './StateProvider';
 import CheckoutProduct from './CheckoutProduct';
-import { Link } from 'react-router-dom';
+import { Link ,useNavigate} from 'react-router-dom';
 import {CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import CurrencyFormat from 'react-currency-format';
-import { getbasketTotal } from './reducer';
-import axios from 'axios';
+import { getBasketTotal } from './reducer';
+import axios from './axios';
 
+    
 
 
 
 function Payment() {
 
   const [{basket,user},dispatch]=useStateValue();
+  const navigate = useNavigate();
 
   const stripe=useStripe();     //two imp hooks
   const element=useElements();
@@ -32,19 +34,36 @@ function Payment() {
       const getClientSecret =async()=>{
             const response= await axios ({
                 method:'post',
-                url:`payments/create>total=${getBasketTotal(basket)}`
-            })  //axios is a way of making request we can make post reqest get request any thing that
 
+                //stripe except the total in current currency subunits
+
+                 // eslint-disable-next-line no-undef
+                 url:`payments/create?total=${getBasketTotal(basket)*100}`
+            });  //axios is a way of making request we can make post reqest get request any thing that
+            setClientSecret(response.data.clientSecret)  //backend
       }
-      getClientSecret();
+      getClientSecret();   //whenever the basket changes it will make these request and update the stripe secrete which allows a customer to correct amount
   },[basket])
+
+  console.log("the secrete is",clientSecret)
 
   const handleSubmit=async(event)=>{
     //do all fancy stuff
     event.preventDefault();
     setProcessing(true)     //when user click on buy button more than one time it will block other click
     
-    //const payload =await stripe
+    const payload =await stripe.confirmCardPayment(clientSecret,{
+      payment_method:{
+        card: element.getElement(CardElement)
+      }
+    }).then(({paymentIntent})=>{
+      //paymentIntent=payment conformation
+      setSucceeded(true);
+      setError(null)
+      setProcessing(false)
+
+      navigate.replace('/orders')    //here may error occur
+    })
   }
   const handleChange=e=>{
     //Listen for changes in CardElement
@@ -110,7 +129,7 @@ function Payment() {
                 <h3>Order Total : {value}</h3>
               </>)}
               decimalScale={2}
-              value={getbasketTotal(basket)}
+              value={getBasketTotal(basket)}
               displayType={'text'}
               thousandSeparator={true}
               prefix={"₹"}

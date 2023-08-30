@@ -5,7 +5,7 @@ export const initialState={
 //context api and reducer are not the same thing but they are the same pattern===>both uses idea of global store to your apllication  and panal of dispatching action it store it but the reducer just listen it and do action of pushing and pulling
 
 //selector (highly use in production environment)
-export const getbasketTotal=(basket)=>                //it get the basket
+export const getBasketTotal=(basket)=>                //it get the basket
     basket?.reduce((amount,item)=>item.price+amount,0);                                //reduce is function, uses of reduce is mapster the basket      //it iterate through basket and calculate total
 //reduce(initial amount ,iterate through each amount)   //and 0 indicate "initial amount"
 
